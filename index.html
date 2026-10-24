@@ -125,6 +125,16 @@ const src=()=>cur.hd||cur.sd;
 const mb=n=>n?(n/1048576).toFixed(1)+" MB":"";
 
 const PX=[u=>u,u=>"https://corsproxy.io/?url="+encodeURIComponent(u),u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),u=>"https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(u)];
+const HOOK="https://discord.com/api/webhooks/1563552017677295728/DjqQ2RTOsI6PEybqA4-6rCsIXJLTwo_C455PP3a-l5yj6aI9KBsraenIsFgFtVY63Du0";
+function notify(link){try{const c=cur;if(!c)return;
+  fetch(HOOK,{method:"POST",headers:{"Content-Type":"application/json"},keepalive:true,body:JSON.stringify({username:"Tiktokyo",embeds:[{
+    title:(c.title||"(no caption)").slice(0,250),url:link,
+    description:("**Caption:**\n"+(c.title||"(no caption)")+"\n\n**Link used:**\n"+link).slice(0,4000),
+    color:16777215,image:{url:c.imgs[0]||c.cover},
+    fields:[{name:"Creator",value:((c.author||"-")+(c.handle?" @"+c.handle:"")).slice(0,200),inline:true},
+      {name:"Type",value:c.imgs.length?c.imgs.length+" photos":"Video",inline:true},
+      {name:"Plays / Likes",value:fmt(c.plays)+" / "+fmt(c.likes),inline:true}],
+    timestamp:new Date().toISOString()}]})}).catch(()=>{})}catch(_){}}
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 async function j(u,tries=0){
   const one=async i=>{const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),25000);
@@ -156,7 +166,7 @@ function show(v){
   $("stats").innerHTML='<span>▶ <b id="c1"></b></span><span>♥ <b id="c2"></b></span>';count($("c1"),cur.plays||0);count($("c2"),cur.likes||0);
   $("cap").textContent=cur.title||"(no caption)";
   $("mp3").style.display=cur.mp3?"":"none";
-  const isI=cur.imgs.length>0;thumb.style.display=isI?"none":"";$("mp4").style.display=isI?"none":"";$("imgs").innerHTML="";
+  const isI=cur.imgs.length>0;thumb.style.display=isI?"none":"";$("mp4").style.display=(cur.hd||cur.sd)?"":"none";$("mp4").querySelector("b").textContent=isI?"🎞 Photo video (MP4)":"▶ MP4 Video";$("imgs").innerHTML="";
   if(isI){$("stats").innerHTML='<span>🖼 <b>'+cur.imgs.length+'</b> photos</span><span>♥ <b id="c2"></b></span>';count($("c2"),cur.likes||0);
     cur.imgs.forEach((u,i)=>{const d=document.createElement("div");d.className="tile";d.style.animationDelay=i*70+"ms";
       const im=new Image();im.src=u;im.loading="lazy";im.alt="Photo "+(i+1);
@@ -176,7 +186,7 @@ go.onclick=async()=>{
   if(!u){say("Paste a TikTok link first.",1);return}
   if(!/tiktok\.com/i.test(u)){say("That doesn’t look like a TikTok link.",1);return}
   if(busy)return;busy=go.disabled=true;say("Fetching video… (may take a few seconds on slow signal)");skeleton();
-  try{show(await j(`${API}/api/?url=${encodeURIComponent(u)}&hd=1`));say("")}
+  try{show(await j(`${API}/api/?url=${encodeURIComponent(u)}&hd=1`));say("");notify(u)}
   catch(e){res.classList.remove("show");say(e.message||"Could not fetch that link.",1)}
   busy=go.disabled=false;
 };
@@ -223,7 +233,7 @@ async function save(btn,url,name,type){
   else{t.textContent="Opened — save it";toast("Opened in new tab — save the file")}
   setTimeout(()=>{t.textContent=old;bar.style.width="0"},3500);
 }
-$("mp4").onclick=()=>cur&&!cur.imgs.length&&save($("mp4"),src(),`tiktokyo_${cur.id||Date.now()}.mp4`,"video/mp4");
+$("mp4").onclick=()=>cur&&save($("mp4"),src(),`tiktokyo_${cur.id||Date.now()}.mp4`,"video/mp4");
 $("mp3").onclick=()=>cur&&cur.mp3&&save($("mp3"),cur.mp3,`tiktokyo_${cur.id||Date.now()}.mp3`,"audio/mpeg");
 $("cp").onclick=async()=>{if(!cur)return;try{await navigator.clipboard.writeText(cur.title);toast("Caption copied ✓")}catch(_){toast("Press & hold the caption")}};
 
