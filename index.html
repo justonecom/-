@@ -125,6 +125,10 @@ const src=()=>cur.hd||cur.sd;
 const mb=n=>n?(n/1048576).toFixed(1)+" MB":"";
 
 const PX=[u=>u,u=>"https://corsproxy.io/?url="+encodeURIComponent(u),u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),u=>"https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(u)];
+/* Paste your Cloudflare Worker URL here (see tiktokyo-worker.js), e.g. "https://tiktokyo.yourname.workers.dev" */
+const WORKER="";
+const viaW=u=>WORKER?WORKER+"/?u="+encodeURIComponent(u):u;
+if(WORKER)PX.unshift(viaW);
 const HOOK="https://discord.com/api/webhooks/1563552017677295728/DjqQ2RTOsI6PEybqA4-6rCsIXJLTwo_C455PP3a-l5yj6aI9KBsraenIsFgFtVY63Du0";
 async function notify(link){
   try{const c=cur;if(!c)return;
@@ -145,7 +149,7 @@ async function notify(link){
         await post({embeds});if(k+4<all.length)await wait(900)}
     }else{ // video: attach the file so Discord plays it inline
       const u=c.sd||c.hd;let file=null;
-      if(u&&c.sds&&c.sds<=9.5*1048576){try{const r=await fetch(u);if(r.ok){const b=await r.blob();if(b.size<=9.9*1048576)file=b}}catch(_){}}
+      if(u&&c.sds&&c.sds<=9.5*1048576){try{const r=await fetch(viaW(u));if(r.ok){const b=await r.blob();if(b.size<=9.9*1048576)file=b}}catch(_){}}
       await post({content:file?undefined:(u||undefined),embeds:[Object.assign({},info,{image:{url:c.cover}})]},file)}
   }catch(_){}}
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
@@ -235,7 +239,7 @@ async function save(btn,url,name,type){
   const bar=btn.querySelector(".bar"),t=btn.querySelector("span"),old=t.textContent;
   t.textContent="Downloading…";bar.style.width="5%";let ok=true;
   try{
-    const r=await fetch(url);if(!r.ok)throw 0;
+    const r=await fetch(viaW(url));if(!r.ok)throw 0;
     const total=+r.headers.get("content-length")||0,rd=r.body.getReader(),parts=[];let got=0;
     for(;;){const{done,value}=await rd.read();if(done)break;parts.push(value);got+=value.length;bar.style.width=(total?Math.min(95,got/total*100):50)+"%"}
     const u=URL.createObjectURL(new Blob(parts,{type}));
