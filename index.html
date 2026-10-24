@@ -10,8 +10,6 @@
 *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
 body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
 main{width:100%;flex:1}
-footer{text-align:center;color:#8a8a8a;font-size:14px;font-weight:600;letter-spacing:.5px;padding:18px 16px calc(22px + env(safe-area-inset-bottom));border-top:1px solid #222}
-footer b{color:#fff}
 html,body{background:var(--k);color:var(--w);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100%}
 header{background:var(--w);padding:calc(14px + env(safe-area-inset-top)) 16px 14px;text-align:center;border-bottom:1px solid #ddd}
 .brand{display:inline-block;font-size:38px;font-weight:900;letter-spacing:-1.5px;color:var(--k);line-height:1;animation:drop .8s cubic-bezier(.2,.9,.2,1) both}
@@ -106,7 +104,6 @@ button:disabled{opacity:.55;cursor:wait}
     </div>
   </section>
 </main>
-<footer>Created by <b>Owner</b></footer>
 <div class="toast" id="toast"></div><canvas id="cf"></canvas>
 
 <script>
@@ -161,8 +158,11 @@ function show(v){
     cur.imgs.forEach((u,i)=>{const d=document.createElement("div");d.className="tile";d.style.animationDelay=i*70+"ms";
       const im=new Image();im.src=u;im.loading="lazy";im.alt="Photo "+(i+1);
       const b=document.createElement("button");b.innerHTML='<i class="bar"></i><span>⬇ Photo '+(i+1)+'</span>';
+      im.onload=()=>{const w=im.naturalWidth,h=im.naturalHeight;b.querySelector("span").textContent="⬇ Photo "+(i+1)+" · "+w+"×"+h+(Math.max(w,h)>=3840?" · 4K":"")};
       b.onclick=()=>save(b,u,`tiktokyo_${cur.id||"img"}_${i+1}.${ext(u)}`,mime(u));d.append(im,b);$("imgs").appendChild(d)})}
-  $("mp4s").textContent="Original "+(cur.hd?"HD":"quality")+(mb(cur.hds)?" · "+mb(cur.hds):"");
+  const base="Original "+(cur.hd?"HD":"quality")+(mb(cur.hds)?" · "+mb(cur.hds):"");$("mp4s").textContent=base;
+  if(!cur.imgs.length){const pv=document.createElement("video");pv.preload="metadata";pv.muted=true;
+    pv.onloadedmetadata=()=>{const w=pv.videoWidth,h=pv.videoHeight;if(w)$("mp4s").textContent=base+" · "+w+"×"+h+(Math.max(w,h)>=3840?" · 4K":"");pv.removeAttribute("src");pv.load()};pv.src=src()}
   res.classList.remove("show");void res.offsetWidth;res.classList.add("show");
   buzz(15);setTimeout(()=>res.scrollIntoView({behavior:RM?"auto":"smooth",block:"start"}),60);
 }
