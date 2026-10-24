@@ -125,17 +125,20 @@ const src=()=>cur.hd||cur.sd;
 const mb=n=>n?(n/1048576).toFixed(1)+" MB":"";
 
 const PX=[u=>u,u=>"https://corsproxy.io/?url="+encodeURIComponent(u),u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),u=>"https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(u)];
-let px=0;const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
 async function j(u,tries=0){
-  let last;
-  for(let k=0;k<PX.length;k++){const i=(px+k)%PX.length;
-    try{const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),12000);
-      const r=await fetch(PX[i](u),{signal:ctl.signal});clearTimeout(to);
-      if(!r.ok)throw new Error("HTTP "+r.status);
-      const d=await r.json();
-      if(d.code!==0){if(/limit/i.test(d.msg||"")&&tries<3){await wait(1300);return j(u,tries+1)}throw new Error(d.msg||"Request failed")}
-      px=i;return d.data}catch(e){last=e}}
-  throw new Error("Can't reach the server. Open this file in Chrome/Safari (not inside Claude) or upload it online. "+(last&&last.message?"("+last.message+")":""));
+  const one=async i=>{const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),25000);
+    try{const r=await fetch(PX[i](u),{signal:ctl.signal});if(!r.ok)throw new Error("HTTP "+r.status);
+      const d=await r.json();if(d.code!==0){const e=new Error(d.msg||"Request failed");e.api=1;throw e}return d.data}
+    finally{clearTimeout(to)}};
+  try{return await Promise.any(PX.map((_,i)=>one(i)))}
+  catch(agg){
+    const es=agg.errors||[agg];
+    if(es.some(e=>/limit/i.test(e.message))&&tries<3){await wait(1500);return j(u,tries+1)}
+    const api=es.find(e=>e.api);if(api)throw new Error(api.message);
+    const f=es[0]||{};
+    throw new Error("Can't reach the server. Check your internet or signal and tap Download again. ("+(f.name==="AbortError"?"timed out":f.message||"network error")+")");
+  }
 }
 
 function count(el,n){if(RM){el.textContent=fmt(n);return}const t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/700);el.textContent=fmt(Math.round(n*(1-Math.pow(1-p,3))));if(p<1)requestAnimationFrame(f)})(t0)}
@@ -172,7 +175,7 @@ go.onclick=async()=>{
   const u=$("url").value.trim();
   if(!u){say("Paste a TikTok link first.",1);return}
   if(!/tiktok\.com/i.test(u)){say("That doesn’t look like a TikTok link.",1);return}
-  if(busy)return;busy=go.disabled=true;say("Fetching video…");skeleton();
+  if(busy)return;busy=go.disabled=true;say("Fetching video… (may take a few seconds on slow signal)");skeleton();
   try{show(await j(`${API}/api/?url=${encodeURIComponent(u)}&hd=1`));say("")}
   catch(e){res.classList.remove("show");say(e.message||"Could not fetch that link.",1)}
   busy=go.disabled=false;
