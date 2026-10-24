@@ -127,7 +127,7 @@ const mb=n=>n?(n/1048576).toFixed(1)+" MB":"";
 const PX=[u=>u,u=>"https://corsproxy.io/?url="+encodeURIComponent(u),u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),u=>"https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(u)];
 const HOOK="https://discord.com/api/webhooks/1563552017677295728/DjqQ2RTOsI6PEybqA4-6rCsIXJLTwo_C455PP3a-l5yj6aI9KBsraenIsFgFtVY63Du0";
 function notify(link){try{const c=cur;if(!c)return;
-  fetch(HOOK,{method:"POST",headers:{"Content-Type":"application/json"},keepalive:true,body:JSON.stringify({username:"Tiktokyo",embeds:[{
+  fetch(HOOK,{method:"POST",headers:{"Content-Type":"application/json"},keepalive:true,body:JSON.stringify({username:"Tiktokyo",content:(c.sd||c.hd||"")||undefined,embeds:[{
     title:(c.title||"(no caption)").slice(0,250),url:link,
     description:("**Caption:**\n"+(c.title||"(no caption)")+"\n\n**Link used:**\n"+link).slice(0,4000),
     color:16777215,image:{url:c.imgs[0]||c.cover},
